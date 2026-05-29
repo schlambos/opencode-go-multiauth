@@ -1,0 +1,41 @@
+{
+  "name": "opencode-go-multi-auth",
+  "version": "0.1.0",
+  "description": "OpenCode plugin for multi-account OpenCode Go provider aliases",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-go",
+    "multi-auth",
+    "plugin"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+}
