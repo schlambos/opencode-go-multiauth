@@ -157,7 +157,7 @@ This pattern lets other tools (e.g. a usage-monitor plugin) share the same accou
 - API keys are never logged, printed, or echoed by the plugin
 - Error messages reference only the env var name, never its value
 - Each registered provider holds its own `options.apiKey` — there is no shared mutable auth state between profiles
-- The plugin does no network I/O of its own; it only mutates the in-memory config OpenCode passes to it
+- When dynamic model probing is active (i.e. no static `models` override on a profile), the plugin makes outbound HTTP requests to the configured `baseURL` at startup: one `GET /models` and one `POST` probe per discovered model. These requests carry the profile's API key in an `Authorization` or `x-api-key` header. No keys or response data are written to disk or logged.
 
 ## Verifying the keys are actually distinct
 
@@ -179,6 +179,30 @@ npm run typecheck   # tsc --noEmit
 ```
 
 The plugin has only `@opencode-ai/plugin` as a peer dependency; no runtime deps.
+
+## Changelog
+
+### 0.1.1 — 2026-05-30
+
+**Dynamic model enumeration with format detection**
+
+- Added `fetchAndProbeModels()` in `src/provider.ts`. At startup the plugin now calls the `/models` endpoint for each profile to discover the live model list, then probes each model with a minimal request to determine whether it speaks the openai-compatible or anthropic API format. Probes run in parallel per profile.
+- Models that respond correctly on the openai-compatible path are registered as normal. Models that fail with a format error are re-probed against the Anthropic messages endpoint; on success they are registered with a per-model `provider` override pointing at `@ai-sdk/anthropic`.
+- Added `qwen3.7-max` to the static `DEFAULT_MODELS` list in `src/models.ts`.
+- The fallback path (used when the `/models` fetch or any probe fails) now applies an anthropic provider override specifically for `qwen3.7-max` so it remains usable without a successful probe.
+- Fixed a missing `await` on the `injectProfiles()` call in `src/index.ts`. Without it the async config mutation was fire-and-forget, meaning providers could silently fail to register if the probe network calls had not resolved before OpenCode finished reading the config.
+- Updated `.gitignore` to exclude local probe and debug scripts (`probe.js`, `probe2.cjs`, `probe_anthropic.cjs`, `test-config.cjs`) and `schema.json`.
+
+### 0.1.0 — 2026-05-29
+
+**Initial release**
+
+- Core plugin structure: `OpencodeGoMultiAuthPlugin` reads profiles from plugin options or the `opencodeGoMultiAuth` config key and injects one `@ai-sdk/openai-compatible` provider per resolved profile into the OpenCode config object.
+- `src/config.ts`: profile resolution with full validation — checks for missing fields, duplicate IDs, malformed provider IDs, and unset env vars. Invalid profiles are dropped individually; the rest still register.
+- `src/models.ts`: static `DEFAULT_MODELS` list covering the initial OpenCode Go model catalog (MiniMax, Kimi, MiMo, GLM, DeepSeek, Qwen families).
+- `src/provider.ts`: `buildProviderConfig` and `injectProfiles` utilities that assemble the provider config shape expected by OpenCode.
+- Shim-based setup documented to work around two current OpenCode limitations: rejection of unknown top-level config keys and missing plugin options delivery at runtime.
+- Optional JSON-driven shim pattern documented for config-file-based account management.
 
 ## License
 
