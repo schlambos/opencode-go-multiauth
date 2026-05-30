@@ -6,7 +6,7 @@ If you have more than one OpenCode Go account (personal, work, alt, etc.) and wa
 
 ## Why this exists
 
-OpenCode's stock OpenCode Go provider supports one API key at a time. This plugin registers N parallel `@ai-sdk/openai-compatible` providers, one per profile you define, each with its own `apiKey` pulled from an environment variable. Pick the account by selecting the matching model namespace in OpenCode's model picker (e.g. `opencode-go-personal/glm-5` vs `opencode-go-alt/glm-5`).
+OpenCode's stock OpenCode Go provider supports one API key at a time. This plugin registers N parallel providers, one per profile you define, each with its own `apiKey` pulled from an environment variable. At startup it fetches the live model list from each profile's endpoint and probes each model to determine its API format; models that use the openai-compatible format are registered normally, while models that require the Anthropic messages format get a per-model provider override. Pick the account by selecting the matching model namespace in OpenCode's model picker (e.g. `opencode-go-personal/glm-5` vs `opencode-go-alt/glm-5`).
 
 ## Install
 
@@ -97,7 +97,7 @@ You can also reference them in your `opencode.jsonc`:
 | `apiKeyEnv`  | yes      | —                                | Env var holding the API key for this profile      |
 | `providerId` | no       | `opencode-go-${id}`              | Override the generated provider ID                |
 | `baseURL`    | no       | `https://opencode.ai/zen/go/v1`  | Override the upstream base URL                    |
-| `models`     | no       | Built-in OpenCode Go model list  | Override the model catalog for this profile       |
+| `models`     | no       | Live list fetched from `/models` | Override the model catalog for this profile; skips probing entirely  |
 
 ## Validation
 
