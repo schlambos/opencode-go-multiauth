@@ -51,7 +51,7 @@ export const OpencodeGoMultiAuthPlugin: Plugin = async (_input, options) => {
         return
       }
 
-      injectProfiles(root, resolved)
+      await injectProfiles(root, resolved)
     },
   }
 }

@@ -6,3 +6,10 @@ dist/
 *.log
 .idea/
 .vscode/
+
+# Local debug/probe scripts
+probe.js
+probe2.cjs
+probe_anthropic.cjs
+test-config.cjs
+schema.json

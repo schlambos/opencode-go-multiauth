@@ -18,6 +18,7 @@ export const DEFAULT_MODELS: ModelEntry[] = [
   { id: "glm-5.1", name: "GLM-5.1" },
   { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
   { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+  { id: "qwen3.7-max", name: "Qwen3.7 Max" },
   { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
   { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
 ]
