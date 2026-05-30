@@ -180,7 +180,108 @@ npm run typecheck   # tsc --noEmit
 
 The plugin has only `@opencode-ai/plugin` as a peer dependency; no runtime deps.
 
+<details>
+<summary><strong>Agent installation instructions</strong></summary>
+
+This section is written for an LLM agent installing this plugin on behalf of a user. Follow each step precisely.
+
+### Prerequisites
+
+Confirm the following before proceeding:
+
+1. Node.js 20 or later is available (`node --version`).
+2. The user has at least one OpenCode Go API key stored in an environment variable (e.g. `OPENCODE_GO_PERSONAL_KEY`). If not, ask the user for the env var name(s) and key value(s) before continuing.
+
+### Step 1 — Clone and build
+
+Choose a permanent location to clone the repo (the built plugin must remain on disk — OpenCode loads it from the path you set in the shim):
+
+```bash
+git clone https://github.com/schlambos/opencode-go-multiauth.git ~/opencode-plugins/opencode-go-multiauth
+cd ~/opencode-plugins/opencode-go-multiauth
+npm install
+npm run build
+```
+
+Verify `dist/index.js` exists after the build before continuing.
+
+### Step 2 — Create the shim
+
+OpenCode auto-discovers any `.js` file placed in `~/.config/opencode/plugins/`. Create that directory if it does not exist, then write the shim.
+
+Confirm `~/.config/opencode/plugins/` exists:
+
+```bash
+mkdir -p ~/.config/opencode/plugins
+```
+
+Write `~/.config/opencode/plugins/opencode-go-multi-auth.js`. Replace the path on the first line with the absolute path to wherever you cloned the repo in Step 1, and replace the profile list with the user's actual accounts (one object per account):
+
+```js
+import plugin from "file:///HOME/opencode-plugins/opencode-go-multiauth/dist/index.js"
+
+const profiles = [
+  {
+    id: "personal",
+    name: "OpenCode Go Personal",
+    apiKeyEnv: "OPENCODE_GO_PERSONAL_KEY",
+  },
+  // Add more profiles here if the user has additional accounts.
+  // Each profile needs: id (lowercase, digits, hyphens), name, apiKeyEnv.
+]
+
+export default async function (input, _options) {
+  return plugin(input, { profiles })
+}
+```
+
+**Do not** add this path to the `plugin` array in `opencode.jsonc` — files in `~/.config/opencode/plugins/` are auto-discovered. Adding it manually causes a spurious "unknown git error" in the log.
+
+### Step 3 — Export the API keys
+
+The plugin reads each profile's key from `process.env[apiKeyEnv]`. Ensure the relevant env vars are exported in the user's shell profile (`~/.zshrc`, `~/.bashrc`, etc.) and are available in the current session. If they are not yet set, add lines of the form:
+
+```bash
+export OPENCODE_GO_PERSONAL_KEY="oc_go_xxxxxxxx"
+```
+
+Ask the user for any key values you do not already have. Never guess or fabricate key values.
+
+### Step 4 — Verify
+
+Ask the user to restart OpenCode, then run:
+
+```bash
+opencode models
+```
+
+Confirm that entries of the form `opencode-go-<id>/<model-id>` appear for each configured profile. If a profile is missing, check:
+
+- The env var named by `apiKeyEnv` is set and non-empty in the shell that launched OpenCode.
+- The shim file is valid ESM (use `node --input-type=module < ~/.config/opencode/plugins/opencode-go-multi-auth.js` to check for syntax errors).
+- `dist/index.js` exists at the path referenced in the shim.
+- The `/models` endpoint is reachable with the user's key (see the "Verifying the keys are actually distinct" section).
+
+### Profile fields reference
+
+| Field        | Required | Default                         | Notes                                              |
+|--------------|----------|---------------------------------|----------------------------------------------------|
+| `id`         | yes      | —                               | Lowercase letters, digits, hyphens; must start with a letter |
+| `name`       | yes      | —                               | Display name in OpenCode's model picker            |
+| `apiKeyEnv`  | yes      | —                               | Name of the env var holding the API key            |
+| `providerId` | no       | `opencode-go-${id}`             | Override the generated provider ID                 |
+| `baseURL`    | no       | `https://opencode.ai/zen/go/v1` | Override the upstream base URL                     |
+| `models`     | no       | Live list from `/models`        | Provide a static model map to skip probing         |
+
+</details>
+
 ## Changelog
+
+### 0.1.3 — 2026-05-30
+
+**Agent installation guide**
+
+- Added a collapsible "Agent installation instructions" section to the Build section — a step-by-step guide written for an LLM agent to install the plugin on behalf of a user, covering prerequisites, cloning and building, shim creation, API key setup, and verification steps.
 
 ### 0.1.2 — 2026-05-30
 
