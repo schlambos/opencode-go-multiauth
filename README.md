@@ -182,6 +182,13 @@ The plugin has only `@opencode-ai/plugin` as a peer dependency; no runtime deps.
 
 ## Changelog
 
+### 0.1.2 — 2026-05-30
+
+**README accuracy fixes**
+
+- Corrected "Why this exists" — removed the incorrect claim that all providers use `@ai-sdk/openai-compatible`; anthropic-format models get a per-model `@ai-sdk/anthropic` override since 0.1.1.
+- Corrected profile schema `models` default — was "Built-in OpenCode Go model list"; now accurately states "Live list fetched from `/models`" with the static list as fallback, and notes that providing `models` skips probing.
+
 ### 0.1.1 — 2026-05-30
 
 **Dynamic model enumeration with format detection**
