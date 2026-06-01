@@ -277,6 +277,15 @@ Confirm that entries of the form `opencode-go-<id>/<model-id>` appear for each c
 
 ## Changelog
 
+### 0.1.4 — 2026-06-01
+
+**Startup hang fix + probe robustness**
+
+- Wrapped every network call in `fetchAndProbeModels()` (the `/models` fetch and each per-model probe) in a 3-second `AbortController` timeout via a new `timedFetch()` helper. Previously these calls had no timeout, so a slow or unresponsive endpoint could block the OpenCode `config` hook — and therefore the TUI — for up to ~60s per profile.
+- Fixed a latent defect where model visibility was tied to live probe success: probes that timed out or errored returned `unsupported` and the model was dropped entirely. With the shorter timeout this caused every model (and the whole provider) to vanish when probes did not resolve in time. Model visibility now comes from the `/models` endpoint — every discovered model is seeded up front, and probing only *refines* the format. A failed or aborted probe leaves the model registered with a safe default instead of dropping it.
+- Inconclusive probes now fall back to a heuristic: `qwen*` models default to the Anthropic messages format (which they require); all others default to openai-compatible.
+- The `/models`-fetch-failure fallback now applies the Anthropic provider override to all `qwen*` models, not just `qwen3.7-max`.
+
 ### 0.1.3 — 2026-05-30
 
 **Agent installation guide**
